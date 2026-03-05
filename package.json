@@ -1,0 +1,28 @@
+{
+  "name": "dmdata-quake-node-server",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/looksky495/dmdata-quake-node-server#readme",
+  "bugs": {
+    "url": "https://github.com/looksky495/dmdata-quake-node-server/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/looksky495/dmdata-quake-node-server.git"
+  },
+  "license": "MIT",
+  "author": "looksky495",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@badgateway/oauth2-client": "^3.3.1",
+    "dotenv": "^17.3.1",
+    "ejs": "^4.0.1",
+    "express": "^5.2.1",
+    "oauth4webapi": "^3.8.5",
+    "open": "^11.0.0"
+  }
+}
