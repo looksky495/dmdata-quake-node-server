@@ -15,7 +15,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node -r dotenv/config index.js"
   },
   "dependencies": {
     "@badgateway/oauth2-client": "^3.3.1",
