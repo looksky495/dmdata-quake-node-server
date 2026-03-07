@@ -21,10 +21,10 @@ const authServer = {
 
 /**
  * Authenticate with DMData API and get an access token.
- * @param {string} secretKey
  * @param {string} clientId
+ * @param {string} secretKey
  */
-export async function auth(secretKey, clientId){
+export async function auth(clientId, secretKey){
   if (!secretKey || !clientId){
     throw new Error("The API secret key and client ID must be provided.");
   }
@@ -43,6 +43,7 @@ export async function auth(secretKey, clientId){
   }).then(res => res.json());
 
   if (response.error){
+    console.error("(" + clientId + ") Authentication error:", response.error, response.error_description);
     throw new Error("Failed to authenticate: " + response.error_description);
   }
 
