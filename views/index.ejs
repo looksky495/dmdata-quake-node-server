@@ -3,59 +3,242 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="format-detection" content="telephone=no">
     <title>DMData Quake Node Server - 受信した緊急地震速報一覧</title>
     <style>
+      @keyframes recent-animation {
+        0% {
+          background-color: #ffeda6;
+        }
+        100% {
+          background-color: transparent;
+        }
+      }
+
+      :root {
+        --event-list-width: 330px;
+        --event-item-content-width: calc(var(--event-list-width) - 84px - 30px);
+      }
+
       body {
         font-family: "Yu Gothic Medium", "Yu Gothic", "Hiragino Kaku Gothic ProN", "Noto Sans CJK JP", "Source Han Sans JP", "sans-serif";
         margin: 0;
         padding: 0;
       }
-      header {
-        background-color: #d0d0d0;
-        color: #424242;
+      h1 {
+        background-color: #dde2fb;
+        color: #6b6b6b;
+        margin: 0;
         padding: 0.5rem;
         text-align: center;
-      }
-      h1 {
-        margin: 0;
-        font-size: 1.5rem;
+        font-size: 1rem;
       }
       main {
         display: flex;
         padding: 0;
       }
       #event-list {
-        width: 30%;
+        width: calc(var(--event-list-width) - 2px);
         border-right: 2px solid #9b9b9b;
-        padding-right: 1rem;
+      }
+      .event-list-scroll {
+        height: calc(100dvh - 2.5rem);
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-gutter: stable;
       }
       #event-selected {
         width: 70%;
         padding-left: 1rem;
       }
       .event-item {
-        cursor: pointer;
-        padding: 0.5rem;
+        display: flex;
+        gap: 6px;
+        padding: 8px;
         border-bottom: 1px solid #ccc;
+        cursor: pointer;
       }
       .event-item:hover {
         background-color: #f0f0f0;
       }
+      .event-item.event-warn::after {
+        content: "!";
+        display: block;
+        position: absolute;
+        left: 6px;
+        color: #f53838;
+        font-size: 18px;
+        font-weight: 900;
+      }
+      .event-item-shindo {
+        text-align: center;
+        align-content: center;
+        font-size: 2rem;
+        width: 45px;
+        margin-left: 5px;
+      }
+      .event-item-shindo::after {
+        vertical-align: top;
+        position: relative;
+        top: 0.2em;
+        left: -0.1em;
+        font-size: 70%;
+        font-weight: 500;
+      }
+      .event-item.shindo-0  .event-item-shindo::before { content: "0"; }
+      .event-item.shindo-1  .event-item-shindo::before { content: "1"; }
+      .event-item.shindo-2  .event-item-shindo::before { content: "2"; }
+      .event-item.shindo-3  .event-item-shindo::before { content: "3"; }
+      .event-item.shindo-4  .event-item-shindo::before { content: "4"; }
+      .event-item.shindo-5l .event-item-shindo::before { content: "5"; }
+      .event-item.shindo-5h .event-item-shindo::before { content: "5"; }
+      .event-item.shindo-6l .event-item-shindo::before { content: "6"; }
+      .event-item.shindo-6h .event-item-shindo::before { content: "6"; }
+      .event-item.shindo-7  .event-item-shindo::before { content: "7"; }
+      .event-item.shindo-5l .event-item-shindo::after { content: "－"; }
+      .event-item.shindo-5h .event-item-shindo::after { content: "＋"; }
+      .event-item.shindo-6l .event-item-shindo::after { content: "－"; }
+      .event-item.shindo-6h .event-item-shindo::after { content: "＋"; }
+      .event-item.shindo-unknown .event-item-shindo::before {
+        content: "不明";
+        font-size: 1rem;
+        position: relative;
+        top: -0.5em;
+      }
+
+      .event-item-content {
+        width: var(--event-item-content-width);
+      }
+      .event-item-header {
+        font-size: 0.7rem;
+        color: #999;
+      }
+      .event-item-body {
+        color: #333;
+      }
+      .event-item-epicenter {
+        font-size: 1.3rem;
+      }
+      .event-item-metadata {
+        display: flex;
+        font-size: 0.8rem;
+        color: #444;
+      }
+      .event-item-magnitude {
+        flex: 1;
+      }
+      .event-recent {
+        background-color: #fff3c4;
+        /* animation: 1s ease-in-out 5 recent-animation; */
+      }
+      .event-cancelled {
+        background-color: #dedede;
+      }
+      .event-cancelled .event-item-body, .event-cancelled .event-item-metadata {
+        color: #8b8b8b;
+      }
+      /* 選択中の「>」矢印 */
+      .event-item.event-item-selected > .event-item-selected {
+        width: 24px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18l6-6-6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+      }
+
+      /* 構文ハイライトが暴走しないようにする */
+      a {}
     </style>
   </head>
   <body>
-    <header>
-      <h1>DMData Quake Node Server - 受信した緊急地震速報一覧</h1>
-    </header>
     <main>
       <div id="event-list">
-        <!-- 受信した緊急地震速報（Event ID 別）（サンプル） -->
-        <div class="event-item">
-          <div class="event-header">ID 20240601123456 - Report No. 12</div>
-          <div class="event-content">
-
+        <h1>受信した緊急地震速報一覧</h1>
+        <div class="event-list-scroll">
+          <!-- 受信した緊急地震速報（Event ID 別）（サンプル） -->
+          <div class="event-item shindo-5l event-item-selected event-recent" data-id="20240601123456">
+            <div class="event-item-shindo"></div>
+            <div class="event-item-content">
+              <div class="event-item-header">2024/06/01 12:34:56 発生 - Rev. 123</div>
+              <div class="event-item-body">
+                <div class="event-item-epicenter">山梨県東部・富士五湖</div>
+                <div class="event-item-metadata">
+                  <div class="event-item-magnitude">M 6.0</div>
+                  <div class="event-item-depth">10km</div>
+                </div>
+              </div>
+            </div>
+            <div class="event-item-selected"></div>
           </div>
-          <div class="event-footer">受信日時: 2024/06/01 12:34:56</div>
+          <div class="event-item shindo-6h event-warn" data-id="20240531214354">
+            <div class="event-item-shindo"></div>
+            <div class="event-item-content">
+              <div class="event-item-header">2024/05/31 21:43:54 発生 - Rev. 62</div>
+              <div class="event-item-body">
+                <div class="event-item-epicenter">石川県能登地方</div>
+                <div class="event-item-metadata">
+                  <div class="event-item-magnitude">M 7.8</div>
+                  <div class="event-item-depth">ごく浅い</div>
+                </div>
+              </div>
+            </div>
+            <div class="event-item-selected"></div>
+          </div>
+          <div class="event-item shindo-hidden event-cancelled" data-id="20240530235500">
+            <div class="event-item-shindo"></div>
+            <div class="event-item-content">
+              <div class="event-item-header">2024/05/30 23:55:05 発生 - Rev. 2</div>
+              <div class="event-item-body">
+                <div class="event-item-epicenter">富山湾</div>
+                <div class="event-item-metadata">
+                  <div class="event-item-magnitude">（キャンセル済み）</div>
+                  <div class="event-item-depth"></div>
+                </div>
+              </div>
+            </div>
+            <div class="event-item-selected"></div>
+          </div>
+          <div class="event-item shindo-2" data-id="20240530162534">
+            <div class="event-item-shindo"></div>
+            <div class="event-item-content">
+              <div class="event-item-header">2024/05/30 16:25:34 発生 - Rev. 4</div>
+              <div class="event-item-body">
+                <div class="event-item-epicenter">富山湾</div>
+                <div class="event-item-metadata">
+                  <div class="event-item-magnitude">M 3.4</div>
+                  <div class="event-item-depth">140km</div>
+                </div>
+              </div>
+            </div>
+            <div class="event-item-selected"></div>
+          </div>
+          <div class="event-item shindo-hidden" data-id="20240530071727">
+            <div class="event-item-shindo"></div>
+            <div class="event-item-content">
+              <div class="event-item-header">2024/05/30 07:17:27 検知 - Rev. 1</div>
+              <div class="event-item-body">
+                <div class="event-item-epicenter">九州地方</div>
+                <div class="event-item-metadata">
+                  <div class="event-item-magnitude">5弱程度以上の揺れに注意</div>
+                  <div class="event-item-depth"></div>
+                </div>
+              </div>
+            </div>
+            <div class="event-item-selected"></div>
+          </div>
+          <div class="event-item shindo-unknown" data-id="20240530012341">
+            <div class="event-item-shindo"></div>
+            <div class="event-item-content">
+              <div class="event-item-header">2024/05/30 01:23:45 発生 - Rev. 2</div>
+              <div class="event-item-body">
+                <div class="event-item-epicenter">小笠原諸島近海</div>
+                <div class="event-item-metadata">
+                  <div class="event-item-magnitude">M 9.0</div>
+                  <div class="event-item-depth">590km</div>
+                </div>
+              </div>
+            </div>
+            <div class="event-item-selected"></div>
+          </div>
         </div>
       </div>
       <div id="event-selected">
