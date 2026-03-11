@@ -126,6 +126,17 @@ export class DMDataSocket extends EventEmitter {
     console.log("WebSocket connection closed.");
   }
 
+  /**
+   * @param {any} data
+   */
+  async send (data){
+    if (typeof data === "string"){
+      this.client.send(data);
+    } else {
+      this.client.send(JSON.stringify(data));
+    }
+  }
+
   [Symbol.dispose](){
     this.close();
   }
