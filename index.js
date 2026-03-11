@@ -35,18 +35,23 @@ const db = dbClient.db("dmdata-quake-node-server");
 // データベースを初期化
 await initializeDatabaseIfNeeded(db, args.values.init);
 
+// WebSocket クライアントの初期化
 const socket = new DMDataSocket(token);
 socket.on("message", async data => {
   const response = await handleMessage(db, data);
   if (response) socket.send(response);
 });
 
+// プロセス終了時に WebSocket と MongoDB の接続を解除
 process.on("SIGINT", async () => {
   console.log("Closing WebSocket connection...");
-  await socket.close();
+  try {
+    await socket.close();
+  } catch {}
   console.log("Closing MongoDB connection...");
-  await dbClient.close();
-
+  try {
+    await dbClient.close();
+  } catch {}
   process.exit(0);
 });
 
