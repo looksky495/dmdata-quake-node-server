@@ -1,6 +1,6 @@
 import { auth } from "./dmdata/oauth.js";
 import { DMDataSocket } from "./dmdata/client.js";
-import { initializeDatabaseIfNeeded } from "./dmdata/db-manager.js";
+import { initializeDatabaseIfNeeded, getLatestVXSE45, getEventList } from "./dmdata/db-manager.js";
 import { handleMessage } from "./dmdata/message-handler.js"
 import { parseArgs, printHelp, printVersion } from "./args-handler.js";
 import { MongoClient } from "mongodb";
@@ -66,12 +66,54 @@ const app = express();
 app.use(middleLogger);
 app.set("view engine", "ejs");
 
-app.get("/", (req, res) => {
-  res.render(path.resolve(import.meta.dirname, "views/index.ejs"), {});
+app.get("/", async (req, res) => {
+  const replacer = {
+    header: "",
+    epicenter: "",
+    magnitude: "",
+    depth: ""
+  };
+  const list = await getEventList(db, 1);
+
+  if (list.length === 0){
+    replacer.header = "受信済みデータなし";
+  } else {
+    const eventId = list[0].eventId;
+    const latestData = await getLatestVXSE45(db, eventId);
+
+    if (!latestData){
+      replacer.header = "受信済みデータはありません";
+    } else {
+      const item = getVXSE45Item(latestData);
+      replacer.header = item.header;
+      replacer.epicenter = item.epicenter;
+      replacer.magnitude = item.magnitude;
+      replacer.depth = item.depth;
+    }
+
+    res.render(path.resolve(import.meta.dirname, "views/index.ejs"), replacer);
+  }
 });
 
 app.get("/list", (req, res) => {
   res.sendFile(path.resolve(import.meta.dirname, "views/list.html"));
+});
+
+app.use("/static", express.static(path.join(import.meta.dirname, "views/static")));
+
+app.api("/api/list", async (req, res) => {
+  try {
+    const list = await getEventList(db);
+    res.json({
+      status: "success",
+      data: list
+    });
+  } catch (error){
+    res.status(500).json({
+      status: "error",
+      error: error.message
+    });
+  }
 });
 
 console.log("Starting WebSocket connection...");

@@ -13,7 +13,7 @@ import zlib from "node:zlib";
 /**
  * @param {import("mongodb").Db} db
  * @param {WebSocketMessage} data WebSocket メッセージ
- * @return {WebSocketPong | null} WebSocket に返信するデータ (返信不要な場合は null)
+ * @return {Promise<WebSocketPong | null>} WebSocket に返信するデータ (返信不要な場合は null)
  */
 export async function handleMessage(db, data){
   if (data.type === "ping"){
