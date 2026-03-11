@@ -70,6 +70,10 @@ app.get("/", (req, res) => {
   res.render(path.resolve(import.meta.dirname, "views/index.ejs"), {});
 });
 
+app.get("/list", (req, res) => {
+  res.sendFile(path.resolve(import.meta.dirname, "views/list.html"));
+});
+
 console.log("Starting WebSocket connection...");
 await socket.start();
 
