@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="format-detection" content="telephone=no">
     <title>DMData Quake Node Server - 受信した緊急地震速報一覧</title>
+    <link rel="stylesheet" href="/static/eew-item.css">
     <style>
       @keyframes recent-animation {
         0% {
@@ -51,82 +52,7 @@
         width: 70%;
         padding-left: 1rem;
       }
-      .event-item {
-        display: flex;
-        gap: 6px;
-        padding: 8px;
-        border-bottom: 1px solid #ccc;
-        cursor: pointer;
-      }
-      .event-item:hover {
-        background-color: #f0f0f0;
-      }
-      .event-item.event-warn::after {
-        content: "!";
-        display: block;
-        position: absolute;
-        left: 6px;
-        color: #f53838;
-        font-size: 18px;
-        font-weight: 900;
-      }
-      .event-item-shindo {
-        text-align: center;
-        align-content: center;
-        font-size: 2rem;
-        width: 45px;
-        margin-left: 5px;
-      }
-      .event-item-shindo::after {
-        vertical-align: top;
-        position: relative;
-        top: 0.2em;
-        left: -0.1em;
-        font-size: 70%;
-        font-weight: 500;
-      }
-      .event-item.shindo-0  .event-item-shindo::before { content: "0"; }
-      .event-item.shindo-1  .event-item-shindo::before { content: "1"; }
-      .event-item.shindo-2  .event-item-shindo::before { content: "2"; }
-      .event-item.shindo-3  .event-item-shindo::before { content: "3"; }
-      .event-item.shindo-4  .event-item-shindo::before { content: "4"; }
-      .event-item.shindo-5l .event-item-shindo::before { content: "5"; }
-      .event-item.shindo-5h .event-item-shindo::before { content: "5"; }
-      .event-item.shindo-6l .event-item-shindo::before { content: "6"; }
-      .event-item.shindo-6h .event-item-shindo::before { content: "6"; }
-      .event-item.shindo-7  .event-item-shindo::before { content: "7"; }
-      .event-item.shindo-5l .event-item-shindo::after { content: "－"; }
-      .event-item.shindo-5h .event-item-shindo::after { content: "＋"; }
-      .event-item.shindo-6l .event-item-shindo::after { content: "－"; }
-      .event-item.shindo-6h .event-item-shindo::after { content: "＋"; }
-      .event-item.shindo-unknown .event-item-shindo::before {
-        content: "不明";
-        font-size: 1rem;
-        position: relative;
-        top: -0.5em;
-      }
 
-      .event-item-content {
-        width: var(--event-item-content-width);
-      }
-      .event-item-header {
-        font-size: 0.7rem;
-        color: #999;
-      }
-      .event-item-body {
-        color: #333;
-      }
-      .event-item-epicenter {
-        font-size: 1.3rem;
-      }
-      .event-item-metadata {
-        display: flex;
-        font-size: 0.8rem;
-        color: #444;
-      }
-      .event-item-magnitude {
-        flex: 1;
-      }
       .event-recent {
         background-color: #fff3c4;
         /* animation: 1s ease-in-out 5 recent-animation; */
