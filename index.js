@@ -2,6 +2,9 @@ import { auth } from "./dmdata/oauth.js";
 import { DMDataSocket } from "./dmdata/client.js";
 import { initializeDatabaseIfNeeded, getLatestVXSE45, getEventList } from "./dmdata/db-manager.js";
 import { handleMessage } from "./dmdata/message-handler.js"
+import { getVXSE45Item } from "./dmdata/data-processor.js";
+
+import { initializeWebSocketServer, closeWebSocketServer } from "./ws-server.js"
 import { parseArgs, printHelp, printVersion } from "./args-handler.js";
 import { MongoClient } from "mongodb";
 
@@ -42,20 +45,28 @@ socket.on("message", async data => {
   if (response) socket.send(response);
 });
 
+console.log("Starting WebSocket server...");
+const wss = initializeWebSocketServer();
+
 // プロセス終了時に WebSocket と MongoDB の接続を解除
 process.on("SIGINT", async () => {
+  console.log("Shutting down WebSocket server...");
+  try {
+    await closeWebSocketServer();
+  } catch {}
+
   console.log("Closing WebSocket connection...");
   try {
     await socket.close();
   } catch {}
+
   console.log("Closing MongoDB connection...");
   try {
     await dbClient.close();
   } catch {}
+
   process.exit(0);
 });
-
-// process.exit(0);
 
 const middleLogger = (req, res, next) => {
   console.log(req.method + " " + req.url);
@@ -71,7 +82,8 @@ app.get("/", async (req, res) => {
     header: "",
     epicenter: "",
     magnitude: "",
-    depth: ""
+    depth: "",
+    classes: []
   };
   const list = await getEventList(db, 1);
 
@@ -89,24 +101,66 @@ app.get("/", async (req, res) => {
       replacer.epicenter = item.epicenter;
       replacer.magnitude = item.magnitude;
       replacer.depth = item.depth;
+      replacer.classes = item.classes;
     }
-
-    res.render(path.resolve(import.meta.dirname, "views/index.ejs"), replacer);
   }
+  res.render(path.resolve(import.meta.dirname, "views/index.ejs"), replacer);
 });
 
 app.get("/list", (req, res) => {
-  res.sendFile(path.resolve(import.meta.dirname, "views/list.html"));
+  res.render(path.resolve(import.meta.dirname, "views/list.ejs"), {
+    ws_port: 6500
+  });
 });
 
 app.use("/static", express.static(path.join(import.meta.dirname, "views/static")));
 
-app.api("/api/list", async (req, res) => {
+app.get("/api/list", async (req, res) => {
   try {
     const list = await getEventList(db);
     res.json({
       status: "success",
       data: list
+    });
+  } catch (error){
+    res.status(500).json({
+      status: "error",
+      error: error.message
+    });
+  }
+});
+
+const localhostOnlyJson = (req, res, next) => {
+  const ip = req.ip || req.connection.remoteAddress;
+  if (ip === "::1" || ip === "127.0.0.1"){
+    next();
+  } else {
+    res.status(403).json({
+      status: "error",
+      error: "Forbidden"
+    });
+  }
+};
+
+const localhostOnlyHtml = (req, res, next) => {
+  const ip = req.ip || req.connection.remoteAddress;
+  if (ip === "::1" || ip === "127.0.0.1"){
+    next();
+  } else {
+    res.status(403).sendFile(path.resolve(import.meta.dirname, "views/forbidden.html"));
+  }
+};
+
+app.get("/debug/upload", localhostOnlyHtml, (req, res) => {
+  res.sendFile(path.resolve(import.meta.dirname, "views/upload.html"));
+});
+
+app.post("/debug/api/upload", localhostOnlyJson, express.json(), async (req, res) => {
+  try {
+    const response = await handleMessage(db, req.body);
+    if (response) socket.send(response);
+    res.json({
+      status: "success"
     });
   } catch (error){
     res.status(500).json({
