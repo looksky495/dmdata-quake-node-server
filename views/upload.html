@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload</title>
+</head>
+<body>
+  <h1>Upload</h1>
+  <input type="file" id="fileInput">
+  <button id="uploadButton">Upload</button>
+  <script>
+    document.getElementById("uploadButton").addEventListener("click", async () => {
+      const fileInput = document.getElementById("fileInput");
+      if (fileInput.files.length === 0) {
+        alert("ファイルを選択してください。");
+        return;
+      }
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      reader.onload = async function(event) {
+        const fileContent = event.target.result;
+        await uploadFile(fileContent);
+      };
+      reader.readAsText(file);
+    });
+
+    function validateJSON(jsonString) {
+      try {
+        JSON.parse(jsonString);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    async function uploadFile(content){
+      try {
+        console.log(content);
+        if (!validateJSON(content)) {
+          alert("無効なJSONファイルです。");
+          return;
+        }
+        const response = await fetch("/debug/api/upload", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: content
+        });
+        if (response.ok) {
+          // alert("ファイルがアップロードされました。");
+        } else {
+          alert("アップロードに失敗しました。");
+        }
+      } catch (error) {
+        console.error("Error uploading file:", error);
+        alert("アップロード中にエラーが発生しました。");
+      }
+    }
+  </script>
+</body>
+</html>

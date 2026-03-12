@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="format-detection" content="telephone=no">
+    <title>DMData Quake Node Server - 受信した緊急地震速報一覧</title>
+    <link rel="stylesheet" href="/static/eew-item.css">
+    <style>
+      @keyframes recent-animation {
+        0% {
+          background-color: #ffeda6;
+        }
+        100% {
+          background-color: transparent;
+        }
+      }
+
+      :root {
+        --event-list-width: 330px;
+        --event-item-content-width: calc(var(--event-list-width) - 84px - 30px);
+      }
+
+      body {
+        font-family: "Yu Gothic Medium", "Yu Gothic", "Hiragino Kaku Gothic ProN", "Noto Sans CJK JP", "Source Han Sans JP", "sans-serif";
+        margin: 0;
+        padding: 0;
+      }
+      h1 {
+        background-color: #dde2fb;
+        color: #6b6b6b;
+        margin: 0;
+        padding: 0.5rem;
+        text-align: center;
+        font-size: 1rem;
+      }
+      main {
+        display: flex;
+        padding: 0;
+      }
+      #event-list {
+        width: calc(var(--event-list-width) - 2px);
+        border-right: 2px solid #9b9b9b;
+      }
+      .event-list-scroll {
+        height: calc(100dvh - 2.5rem);
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-gutter: stable;
+      }
+      #event-selected {
+        width: 70%;
+        padding-left: 1rem;
+      }
+
+      /* 選択中の「>」矢印 */
+      .event-item.event-item-selected > .event-item-selected {
+        width: 24px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18l6-6-6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+      }
+
+      /* 構文ハイライトが暴走しないようにする */
+      a.a#a > a[a] + a[a~=a] {}
+    </style>
+  </head>
+  <body>
+    <main>
+      <div id="event-list">
+        <h1>受信した緊急地震速報一覧</h1>
+        <!-- 受信した緊急地震速報（Event ID 別） -->
+        <div class="event-list-scroll" id="event-list-scroll"></div>
+      </div>
+      <div id="event-selected">
+        <!-- 選択したイベント -->
+        <div id="event-reports">
+          <!-- 選択したイベントについて受信した情報一覧 -->
+        </div>
+        <div id="report-detail">
+          <!-- 選択した情報の詳細 -->
+        </div>
+      </div>
+    </main>
+    <div style="display: none;" id="ws-port"><%= ws_port %></div>
+    <script>
+      const wsPort = document.getElementById("ws-port").textContent;
+      const wsClient = new WebSocket(`ws://${window.location.host}:${wsPort}/ws`);
+      const eventList = [];
+
+      wsClient.addEventListener("open", () => {
+        wsClient.send(JSON.stringify({ type: "list" }));
+      });
+      wsClient.addEventListener("message", (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === "list") {
+          // console.log("Received event list:", data.list);
+          for (const event of data.data.toReversed()){
+            const existingEvent = eventList.find(e => e.eventId === event.eventId);
+
+            if (!existingEvent) {
+              // 要素を追加
+              const parentElement = document.createElement("div");
+              parentElement.classList.add("event-item");
+              parentElement.dataset.id = event.eventId;
+              for (const classId of event.classes){
+                parentElement.classList.add(classId);
+              }
+              document.getElementById("event-list-scroll").prepend(parentElement);
+
+              const shindoElement = document.createElement("div");
+              shindoElement.classList.add("event-item-shindo");
+
+              const contentElement = document.createElement("div");
+              contentElement.classList.add("event-item-content");
+
+              const headerElement = document.createElement("div");
+              headerElement.classList.add("event-item-header");
+              if (event.header.realtime){
+                headerElement.textContent = calcRealtimeHeader(event.header);
+              } else {
+                headerElement.textContent = event.header.text;
+              }
+
+              const bodyElement = document.createElement("div");
+              bodyElement.classList.add("event-item-body");
+
+              const epicenterElement = document.createElement("div");
+              epicenterElement.classList.add("event-item-epicenter");
+              epicenterElement.textContent = event.epicenter;
+
+              const metadataElement = document.createElement("div");
+              metadataElement.classList.add("event-item-metadata");
+
+              const magnitudeElement = document.createElement("div");
+              magnitudeElement.classList.add("event-item-magnitude");
+              magnitudeElement.textContent = event.magnitude;
+
+              const depthElement = document.createElement("div");
+              depthElement.classList.add("event-item-depth");
+              depthElement.textContent = event.depth;
+
+              const eventItemSelectedElement = document.createElement("div");
+              eventItemSelectedElement.classList.add("event-item-selected");
+
+              metadataElement.appendChild(magnitudeElement);
+              metadataElement.appendChild(depthElement);
+              bodyElement.appendChild(epicenterElement);
+              bodyElement.appendChild(metadataElement);
+              contentElement.appendChild(headerElement);
+              contentElement.appendChild(bodyElement);
+              parentElement.appendChild(shindoElement);
+              parentElement.appendChild(contentElement);
+              parentElement.appendChild(eventItemSelectedElement);
+
+              eventList.push({
+                data: event,
+                parentElement,
+                headerElement,
+                epicenterElement,
+                magnitudeElement,
+                depthElement
+              });
+            } else {
+              // 既に存在するイベントの情報を更新
+              existingEvent.data = event;
+
+              // クラスを更新
+              existingEvent.parentElement.className = "event-item";
+              for (const classId of event.classes){
+                existingEvent.parentElement.classList.add(classId);
+              }
+
+              if (!event.header.realtime){
+                existingEvent.headerElement.textContent = event.header.text;
+              }
+              existingEvent.epicenterElement.textContent = event.epicenter;
+              existingEvent.magnitudeElement.textContent = event.magnitude;
+              existingEvent.depthElement.textContent = event.depth;
+            }
+          }
+        }
+      });
+
+      function calcRealtimeHeader (headerData){
+        const timeBase = new Date(headerData.target);
+
+        return `Rev. ${headerData.rev} - ${Math.floor((Date.now() - timeBase) / 1000)} 秒前 発生`;
+      }
+
+      // realtime が true のイベントで、時間（〜〜秒前）を更新する
+      setInterval(() => {
+        for (const event of eventList){
+          if (event.data.header.realtime){
+            event.headerElement.textContent = calcRealtimeHeader(event.data.header);
+          }
+        }
+      }, 500);
+    </script>
+  </body>
+</html>
