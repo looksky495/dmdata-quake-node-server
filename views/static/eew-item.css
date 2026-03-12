@@ -11,8 +11,9 @@
 .event-item.event-warn::after {
   content: "!";
   display: block;
-  position: absolute;
-  left: 6px;
+  position: relative;
+  right: 8px;
+  top: -5px;
   color: #f53838;
   font-size: 18px;
   font-weight: 900;
@@ -73,4 +74,14 @@
 }
 .event-item-magnitude {
   flex: 1;
+}
+.event-recent {
+  background-color: #fff3c4;
+  /* animation: 1s ease-in-out 5 recent-animation; */
+}
+.event-cancelled {
+  background-color: #dedede;
+}
+.event-cancelled .event-item-body, .event-cancelled .event-item-metadata {
+  color: #8b8b8b;
 }
