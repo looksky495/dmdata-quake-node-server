@@ -11,10 +11,10 @@ const dmdataShindo2ClassId = {
   "2": "2",
   "3": "3",
   "4": "4",
-  "5l": "5l",
-  "5h": "5h",
-  "6l": "6l",
-  "6h": "6h",
+  "5-": "5l",
+  "5+": "5h",
+  "6-": "6l",
+  "6+": "6h",
   "7": "7",
   "不明": "unknown"
 };
@@ -31,19 +31,26 @@ export function getVXSE45Item (data){
   const isCanceled = data.body.isCanceled;
 
   // レベル法による推定、またはキャンセル報である場合は、震度を非表示にする
-  const classes = ["shindo-" + ((isThresholdExceeded || isCanceled) ? "hidden" : dmdataShindo2ClassId[data.body])];
-  if (data.body.isLastInfo) classes.push("event-recent");
-  if (data.body.isWarning)  classes.push("event-warn");
+  const classes = ["shindo-" + ((isThresholdExceeded || isCanceled || !data.body.intensity) ? "hidden" : dmdataShindo2ClassId[data.body.intensity.forecastMaxInt.to])];
+  if (!data.body.isLastInfo) classes.push("event-recent");
+  if (data.body.isWarning) classes.push("event-warn");
+  if (data.body.isCanceled) classes.push("event-cancelled");
 
   const header = `Rev. ${data.serialNo} - ${data.body.earthquake.originTime ? new Date(data.body.earthquake.originTime).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }) + " 発生" : new Date(data.body.earthquake.arrivalTime).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }) + " 検知"}`;
   const epicenter = data.body.earthquake.hypocenter.name;
-  const magnitude = (data.body.earthquake.magnitude.value ?? "不明") + "";
-  const depth = ((depth, condition) => {
+  const magnitude = ((magnitude, isThresholdExceeded, isCanceled) => {
+    if (isThresholdExceeded) return "5弱程度以上の揺れに注意";
+    if (isCanceled) return "（キャンセル済み）";
+    return "M " + (magnitude ?? "不明") + "";
+  })(data.body.earthquake.magnitude.value, isThresholdExceeded, isCanceled);
+
+  const depth = ((depth, condition, isCanceled) => {
+    if (isCanceled) return "";
     if (condition === 0) return "ごく浅い";
-    if (condition === 700) return "700km以上";
-    if (depth === null) return "不明";
-    return depth + "km";
-  })(data.body.earthquake.hypocenter.depth, data.body.earthquake.hypocenter.condition);
+    if (condition === 700) return "700 km 以上";
+    if (depth === null) return "深さ 不明";
+    return depth + " km";
+  })(data.body.earthquake.hypocenter.depth.value, data.body.earthquake.hypocenter.depth.condition, isCanceled);
 
   return { classes, header, epicenter, magnitude, depth };
 }
