@@ -1,14 +1,6 @@
 const SCOPES = [
-  "contract.list",
   "eew.get.forecast",
-  "eew.get.warning",
-  "parameter.earthquake",
-  "parameter.tsunami",
-  "socket.close",
   "socket.start",
-  "telegram.data",
-  "telegram.get.earthquake",
-  "telegram.list"
 ];
 
 const authServer = {
