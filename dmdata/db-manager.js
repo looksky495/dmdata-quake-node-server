@@ -38,17 +38,19 @@ export async function initializeDatabase(db){
  */
 export async function saveVXSE45(db, data){
   try {
+    console.log("\u001b[32m" + JSON.stringify(data) + "\u001b[0m");
+
     if (data.type !== "緊急地震速報（地震動予報）") throw new Error("[VXSE45] Data type mismatched: " + data.type);
 
     // ----- 生データを保存 -----
-    await db.collection("vxse45-raw").insertOne(data);
+    await db.collection("vxse45-raw").insertOne({ ...data });
 
     // ----- 最新のデータを保存 -----
     /** @type {EewInformation | null} */
     const existingLatest = await db.collection("vxse45-latest").findOne({ eventId: data.eventId });
     // 既存のデータが存在しない、または serial が新しい、またはキャンセル報である場合に更新
     if (!existingLatest || existingLatest.serialNo <= data.serialNo || data.body.isCanceled){
-      await db.collection("vxse45-latest").updateOne({ eventId: data.eventId }, { $set: data }, { upsert: true });
+      await db.collection("vxse45-latest").updateOne({ eventId: data.eventId }, { $set: { ...data } }, { upsert: true });
     }
 
     // ----- 一覧用のデータを保存 -----
@@ -69,7 +71,6 @@ export async function saveVXSE45(db, data){
     }
 
     console.log("EEW data saved to database.");
-    console.log("\u001b[32m" + JSON.stringify(data) + "\u001b[0m");
   } catch (error){
     console.error("Failed to save EEW data to database:", error);
   }
