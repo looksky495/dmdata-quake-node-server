@@ -24,7 +24,8 @@
     "express": "^5.2.1",
     "mongo": "^0.1.0",
     "oauth4webapi": "^3.8.5",
-    "open": "^11.0.0"
+    "open": "^11.0.0",
+    "ws": "^8.19.0"
   },
   "devDependencies": {
     "@dmdata/telegram-json-types": "^1.1.18"
