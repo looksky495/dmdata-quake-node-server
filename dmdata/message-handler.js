@@ -30,6 +30,8 @@ export async function handleMessage(db, data){
     return null;
   } else if (data.type !== "pong"){
     // データをデータベースに保存
+    console.log("\u001b[31m" + JSON.stringify(data) + "\u001b[0m");
+
     const encodedBody = data.body;
     const decodedBody = zlib.gunzipSync(Buffer.from(encodedBody, "base64")).toString("utf-8");
     const parsedBody = JSON.parse(decodedBody);
