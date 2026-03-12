@@ -93,12 +93,12 @@
       });
       wsClient.addEventListener("message", (event) => {
         const data = JSON.parse(event.data);
-        if (data.type === "list") {
+        if (data.type === "list"){
           // console.log("Received event list:", data.list);
           for (const event of data.data.toReversed()){
             const existingEvent = eventList.find(e => e.eventId === event.eventId);
 
-            if (!existingEvent) {
+            if (!existingEvent){
               // 要素を追加
               const parentElement = document.createElement("div");
               parentElement.classList.add("event-item");

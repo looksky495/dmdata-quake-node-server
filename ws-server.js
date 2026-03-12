@@ -1,4 +1,6 @@
 import { WebSocketServer } from "ws";
+import { getEventList, getLatestVXSE45 } from "./dmdata/db-manager.js";
+import { getVXSE45Item } from "./dmdata/data-processor.js";
 
 const data = {
   /** @type {WebSocketServer | null} */
@@ -9,12 +11,18 @@ const data = {
   intervalId: null
 };
 
-export function initializeWebSocketServer (port = 6500){
+/**
+ * @param {import("mongodb").Db} db
+ * @param {number} port WebSocket サーバーを起動するポート番号（デフォルト: 6500）
+ * @return {WebSocketServer} 起動した WebSocket サーバーのインスタンス
+ * @description WebSocket サーバーを初期化して起動します。クライアントからの接続を待ち受け、メッセージを処理します。
+ */
+export function initializeWebSocketServer (db, port = 6500){
   const wss = data.wss = new WebSocketServer({ port });
   wss.on("connection", ws => {
     ws.on("error", console.error);
 
-    ws.on("message", (data => {
+    ws.on("message", async data => {
       try {
         const message = JSON.parse(data);
         if (message.type === "ping"){
@@ -35,90 +43,28 @@ export function initializeWebSocketServer (port = 6500){
           // 一旦ダミーのデータを返す
           console.log("[" + new Date().toISOString() + "] Received list request from client.");
 
-          ws.send(JSON.stringify({
+          const events = await getEventList(db, 20);
+          const responseData = {
             type: "list",
-            data: [
-              {
-                eventId: "20240601123456",
-                classes: ["shindo-5l", "event-recent"],
-                header: {
-                  realtime: true,
-                  rev: 123,
-                  target: 1717212899000,
-                  suffix: "発生"
-                },
-                epicenter: "山梨県東部・富士五湖",
-                magnitude: "M 6.0",
-                depth: "10km"
-              },
-              {
-                eventId: "20240531214354",
-                classes: ["shindo-6h", "event-warn"],
-                header: {
-                  realtime: false,
-                  text: "Rev. 62 - 2024/05/31 21:43:54 発生"
-                },
-                epicenter: "石川県能登地方",
-                magnitude: "M 7.8",
-                depth: "ごく浅い"
-              },
-              {
-                eventId: "20240530235500",
-                classes: ["shindo-hidden", "event-cancelled"],
-                header: {
-                  realtime: false,
-                  text: "Rev. 2 - 2024/05/30 23:55:05 発生"
-                },
-                epicenter: "富山湾",
-                magnitude: "（キャンセル済み）",
-                depth: ""
-              },
-              {
-                eventId: "20240530162534",
-                classes: ["shindo-2"],
-                header: {
-                  realtime: false,
-                  text: "Rev. 4 - 2024/05/30 16:25:34 発生"
-                },
-                epicenter: "富山湾",
-                magnitude: "M 3.4",
-                depth: "140km"
-              },
-              {
-                eventId: "20240530071727",
-                classes: ["shindo-hidden"],
-                header: {
-                  realtime: false,
-                  text: "Rev. 1 - 2024/05/30 07:17:27 検知"
-                },
-                epicenter: "九州地方",
-                magnitude: "5弱程度以上の揺れに注意",
-                depth: ""
-              },
-              {
-                eventId: "20240530012341",
-                classes: ["shindo-unknown"],
-                header: {
-                  realtime: false,
-                  text: "Rev. 2 - 2024/05/30 01:23:45 発生"
-                },
-                epicenter: "小笠原諸島近海",
-                magnitude: "M 9.0",
-                depth: "590km"
-              }
-            ]
-          }));
+            data: []
+          };
+          for (const event of events){
+            const latestData = await getLatestVXSE45(db, event.eventId);
+            if (latestData) responseData.data.push(getVXSE45Item(latestData));
+          }
+
+          ws.send(JSON.stringify(responseData));
         }
 
       } catch (error){
         console.error("Failed to process message:", error);
       }
-    }).bind(ws));
+    });
 
-    ws.on("close", (() => {
+    ws.on("close", () => {
       // クライアントが切断されたときに clients 配列から削除する
       data.clients.splice(data.clients.findIndex(c => c.ws === ws), 1);
-    }).bind(ws));
+    });
 
     data.clients.push({
       ws,
