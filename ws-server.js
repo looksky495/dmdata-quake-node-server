@@ -1,5 +1,5 @@
 import { WebSocketServer } from "ws";
-import { getEventList, getLatestVXSE45 } from "./dmdata/db-manager.js";
+import { getEventList, getLatestVXSE45, databaseEventEmitter } from "./dmdata/db-manager.js";
 import { getVXSE45Item } from "./dmdata/data-processor.js";
 
 const parentData = {
@@ -12,6 +12,32 @@ const parentData = {
   /** @type {import("mongodb").Db | null} */
   db: null
 };
+
+
+/**
+ * @param {import("@dmdata/telegram-json-types").EewInformation.v1_0_0.Main} eventData
+ * @return {{eventId: string, header: {realtime: boolean, rev?: number, target?: number, suffix?: string, text?: string}, classes: string[]}} WebSocket クライアントに送信するデータ
+ * @description データベースの更新イベントを受け取り、WebSocket クライアントに送信するデータを生成します。
+ */
+function createListMessage (eventData){
+  const { header: headerText, ...others } = getVXSE45Item(eventData);
+  const isRealtime = others.classes.includes("event-recent");
+
+  return {
+    eventId: eventData.eventId,
+    header: {
+      realtime: isRealtime,
+      ...(isRealtime ? {
+        rev: eventData.serialNo,
+        target: new Date(eventData.body.earthquake.originTime ?? eventData.body.earthquake.arrivalTime) - 0,
+        suffix: eventData.body.earthquake.originTime ? "発生" : "検知"
+      } : {
+        text: headerText
+      })
+    },
+    ...others
+  };
+}
 
 /**
  * @param {import("mongodb").Db} db
@@ -53,23 +79,9 @@ export function initializeWebSocketServer (db, port = 6500){
           };
           for (const event of events){
             const latestData = await getLatestVXSE45(parentData.db, event.eventId);
-            const { header: headerText, ...others } = getVXSE45Item(latestData);
-            const isRealtime = others.classes.includes("event-recent")
+            if (!latestData) continue;
 
-            if (latestData) responseData.data.push({
-              eventId: event.eventId,
-              header: {
-                realtime: isRealtime,
-                ...(isRealtime ? {
-                  rev: latestData.serialNo,
-                  target: new Date(latestData.body.earthquake.originTime ?? latestData.body.earthquake.arrivalTime) - 0,
-                  suffix: latestData.body.earthquake.originTime ? "発生" : "検知"
-                } : {
-                  text: headerText
-                })
-              },
-              ...others
-            });
+            responseData.data.push(createListMessage(latestData));
           }
 
           ws.send(JSON.stringify(responseData));
@@ -95,6 +107,15 @@ export function initializeWebSocketServer (db, port = 6500){
   });
 
   console.log(`WebSocket server started on port ${port}.`);
+
+  databaseEventEmitter.on("vxse45-updated", async (eventData) => {
+    for (const client of parentData.clients){
+      client.ws.send(JSON.stringify({
+        type: "list",
+        data: [ createListMessage(eventData) ]
+      }));
+    }
+  });
 
   // 定期的に ping を送信する
   parentData.intervalId = setInterval(() => {

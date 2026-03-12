@@ -1,5 +1,9 @@
+import { EventEmitter } from "events";
+
 /** @typedef {import("@dmdata/telegram-json-types").EewInformation.v1_0_0.Main} EewInformation */
 /** @typedef {{eventId: string, updatedDate: number, addedDate: number}} TelegramListItem */
+
+export const databaseEventEmitter = new EventEmitter();
 
 /**
  * データベースの初期化
@@ -71,6 +75,7 @@ export async function saveVXSE45(db, data){
     }
 
     console.log("EEW data saved to database.");
+    databaseEventEmitter.emit("vxse45-updated", data);
   } catch (error){
     console.error("Failed to save EEW data to database:", error);
   }
