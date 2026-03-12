@@ -68,6 +68,7 @@ process.on("SIGINT", async () => {
   process.exit(0);
 });
 
+// express の設定（これは別ファイルに切り出してもいいかも）
 const middleLogger = (req, res, next) => {
   console.log(req.method + " " + req.url);
   next();
