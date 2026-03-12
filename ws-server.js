@@ -2,13 +2,15 @@ import { WebSocketServer } from "ws";
 import { getEventList, getLatestVXSE45 } from "./dmdata/db-manager.js";
 import { getVXSE45Item } from "./dmdata/data-processor.js";
 
-const data = {
+const parentData = {
   /** @type {WebSocketServer | null} */
   wss: null,
   /** @type {Array<{ws: WebSocket, lastPing: number}>} */
   clients: [],
   /** @type {number | null} */
-  intervalId: null
+  intervalId: null,
+  /** @type {import("mongodb").Db | null} */
+  db: null
 };
 
 /**
@@ -18,7 +20,9 @@ const data = {
  * @description WebSocket サーバーを初期化して起動します。クライアントからの接続を待ち受け、メッセージを処理します。
  */
 export function initializeWebSocketServer (db, port = 6500){
-  const wss = data.wss = new WebSocketServer({ port });
+  parentData.db = db;
+
+  const wss = parentData.wss = new WebSocketServer({ port });
   wss.on("connection", ws => {
     ws.on("error", console.error);
 
@@ -33,7 +37,7 @@ export function initializeWebSocketServer (db, port = 6500){
           }));
         } else if (message.type === "pong"){
           // クライアントの ping 応答を処理
-          const client = data.clients.find(c => c.ws === ws);
+          const client = parentData.clients.find(c => c.ws === ws);
           if (client){
             client.ping.time = Date.now();
             client.ping.id = null;
@@ -43,14 +47,17 @@ export function initializeWebSocketServer (db, port = 6500){
           // 一旦ダミーのデータを返す
           console.log("[" + new Date().toISOString() + "] Received list request from client.");
 
-          const events = await getEventList(db, 20);
+          const events = await getEventList(parentData.db, 20);
           const responseData = {
             type: "list",
             data: []
           };
           for (const event of events){
-            const latestData = await getLatestVXSE45(db, event.eventId);
-            if (latestData) responseData.data.push(getVXSE45Item(latestData));
+            const latestData = await getLatestVXSE45(parentData.db, event.eventId);
+            if (latestData) responseData.data.push({
+              eventId: event.eventId,
+              ...getVXSE45Item(latestData)
+            });
           }
 
           ws.send(JSON.stringify(responseData));
@@ -63,10 +70,10 @@ export function initializeWebSocketServer (db, port = 6500){
 
     ws.on("close", () => {
       // クライアントが切断されたときに clients 配列から削除する
-      data.clients.splice(data.clients.findIndex(c => c.ws === ws), 1);
+      parentData.clients.splice(parentData.clients.findIndex(c => c.ws === ws), 1);
     });
 
-    data.clients.push({
+    parentData.clients.push({
       ws,
       ping: {
         time: Date.now(),
@@ -78,8 +85,8 @@ export function initializeWebSocketServer (db, port = 6500){
   console.log(`WebSocket server started on port ${port}.`);
 
   // 定期的に ping を送信する
-  data.intervalId = setInterval(() => {
-    for (const client of data.clients){
+  parentData.intervalId = setInterval(() => {
+    for (const client of parentData.clients){
       // 前回の ping の応答がない場合はクライアントを切断する
       if (client.ping.id){
         client.ws.terminate();
@@ -100,16 +107,16 @@ export function initializeWebSocketServer (db, port = 6500){
 }
 
 export async function closeWebSocketServer (){
-  if (data.intervalId) clearInterval(data.intervalId);
-  if (data.wss){
-    for (const client of data.clients){
+  if (parentData.intervalId) clearInterval(parentData.intervalId);
+  if (parentData.wss){
+    for (const client of parentData.clients){
       try {
         client.ws.close();
       } catch {}
     }
-    data.clients = [];
+    parentData.clients = [];
 
-    await new Promise(resolve => data.wss.close(resolve));
-    data.wss = null;
+    await new Promise(resolve => parentData.wss.close(resolve));
+    parentData.wss = null;
   }
 }

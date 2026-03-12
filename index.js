@@ -46,7 +46,7 @@ socket.on("message", async data => {
 });
 
 console.log("Starting WebSocket server...");
-const wss = initializeWebSocketServer();
+const wss = initializeWebSocketServer(db);
 
 // プロセス終了時に WebSocket と MongoDB の接続を解除
 process.on("SIGINT", async () => {
@@ -126,6 +126,42 @@ app.get("/api/list", async (req, res) => {
     res.status(500).json({
       status: "error",
       error: error.message
+    });
+  }
+});
+
+app.get("/api/event/:eventId", async (req, res) => {
+  try {
+    const eventId = req.params.eventId;
+    if (!eventId || typeof eventId !== "string" || !/^\d{14}$/.test(eventId)){
+      res.status(400).json({
+        status: "error",
+        error: "Invalid event ID"
+      });
+      return;
+    }
+
+    const latestData = await getLatestVXSE45(db, eventId);
+    if (!latestData){
+      res.status(404).json({
+        status: "error",
+        error: "Event not found"
+      });
+      return;
+    }
+    const { _id: _, ...item } = latestData;
+    const processedItem = getVXSE45Item(item);
+
+    res.json({
+      status: "success",
+      data: item,
+      processed: processedItem
+    });
+  } catch (error){
+    console.error("Failed to fetch event data:", error);
+    res.status(500).json({
+      status: "error",
+      error: "Internal server error"
     });
   }
 });

@@ -49,8 +49,9 @@
         scrollbar-gutter: stable;
       }
       #event-selected {
-        width: 70%;
-        padding-left: 1rem;
+        padding: 1rem;
+        width: calc(100dvw - var(--event-list-width) - 2rem);
+        height: calc(100% - 17rem);
       }
 
       /* 選択中の「>」矢印 */
@@ -59,6 +60,216 @@
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18l6-6-6-6'/%3E%3C/svg%3E");
         background-repeat: no-repeat;
         background-position: center;
+      }
+
+      #report-detail {
+        height: 100%;
+        overflow-y: auto;
+        padding: 0;
+        box-sizing: border-box;
+        background: linear-gradient(180deg, #f8fbff 0%, #ffffff 240px);
+      }
+      .report-card {
+        width: 100%;
+        min-height: 100%;
+        border: 0;
+        border-radius: 0;
+        background: #fff;
+        box-shadow: none;
+        padding: 1rem 1rem 1.25rem;
+        box-sizing: border-box;
+      }
+      .report-title {
+        margin: 0;
+        color: #273042;
+        font-size: 1.2rem;
+      }
+      .report-subtitle {
+        margin: 0.3rem 0 0.8rem;
+        color: #556070;
+        font-size: 0.9rem;
+      }
+      .report-flags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+      }
+      .report-flag {
+        font-size: 0.78rem;
+        border-radius: 999px;
+        padding: 0.2rem 0.65rem;
+        border: 1px solid #bac6d6;
+        background: #eef3fa;
+        color: #314056;
+      }
+      .report-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.8rem;
+      }
+      .report-section {
+        border: 1px solid #e0e6ef;
+        border-radius: 8px;
+        padding: 0.7rem 0.75rem;
+        background: #fafcfe;
+      }
+      .report-section h3 {
+        margin: 0 0 0.5rem;
+        font-size: 0.92rem;
+        color: #29354a;
+      }
+      .report-section-wide {
+        grid-column: 1 / -1;
+      }
+      .report-header-box {
+        margin-bottom: 0;
+        border: 1px solid #d9e3f0;
+        border-radius: 8px;
+        background: #f7faff;
+        padding: 0.7rem 0.75rem;
+      }
+      .report-kv {
+        display: grid;
+        grid-template-columns: 120px 1fr;
+        row-gap: 0.35rem;
+        column-gap: 0.6rem;
+        margin: 0;
+        font-size: 0.86rem;
+      }
+      .report-kv dt {
+        color: #5d6b7b;
+        margin: 0;
+      }
+      .report-kv dd {
+        margin: 0;
+        color: #1f2a38;
+        font-weight: 600;
+      }
+      .report-list {
+        margin: 0;
+        padding-left: 1.1rem;
+        font-size: 0.86rem;
+        color: #243245;
+      }
+      .report-list li + li {
+        margin-top: 0.25rem;
+      }
+      .report-compact-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.55rem;
+        margin-bottom: 0.7rem;
+      }
+      .report-compact-group {
+        border: 1px solid #d9e2ef;
+        border-radius: 6px;
+        padding: 0.45rem 0.55rem;
+        background: #fff;
+      }
+      .report-compact-group h4 {
+        margin: 0 0 0.35rem;
+        font-size: 0.8rem;
+        color: #3a4b62;
+      }
+      .report-chip-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+      }
+      .report-chip-list li {
+        font-size: 0.78rem;
+        border: 1px solid #d0dbee;
+        border-radius: 999px;
+        padding: 0.15rem 0.45rem;
+        background: #f6f9ff;
+        color: #2f435f;
+        white-space: nowrap;
+      }
+      .report-region-table-wrap {
+        border: 1px solid #d9e2ef;
+        border-radius: 6px;
+        overflow: auto;
+        max-height: 15rem;
+        background: #fff;
+      }
+      .report-region-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+      }
+      .report-region-table th,
+      .report-region-table td {
+        text-align: left;
+        padding: 0.45rem 0.5rem;
+        border-bottom: 1px solid #ebeff5;
+        white-space: nowrap;
+      }
+      .report-region-table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: #eef4fd;
+        color: #324866;
+        font-weight: 700;
+      }
+      .report-region-table tbody tr:nth-child(even) {
+        background: #fbfdff;
+      }
+      .report-warning-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 0.45rem;
+      }
+      .report-warning-item {
+        display: flex;
+        align-items: baseline;
+        gap: 0.55rem;
+        padding: 0.45rem 0.55rem;
+        border: 1px solid #d9e2ef;
+        border-radius: 6px;
+        background: #fff;
+        font-size: 0.84rem;
+        color: #243245;
+      }
+      .report-warning-code {
+        flex: 0 0 auto;
+        font-weight: 700;
+        color: #314b72;
+        min-width: 3.6em;
+      }
+      .report-warning-text {
+        flex: 1;
+      }
+      .report-note {
+        margin-top: 0.8rem;
+        padding: 0.6rem 0.7rem;
+        border-left: 4px solid #8cb3e6;
+        background: #eef5ff;
+        color: #2c3d55;
+        font-size: 0.84rem;
+        line-height: 1.45;
+        white-space: pre-wrap;
+      }
+
+      @media (max-width: 1080px) {
+        #event-selected {
+          width: auto;
+        }
+        .report-grid {
+          grid-template-columns: 1fr;
+        }
+        .report-kv {
+          grid-template-columns: 104px 1fr;
+        }
+        .report-compact-grid {
+          grid-template-columns: 1fr;
+        }
       }
 
       /* 構文ハイライトが暴走しないようにする */
@@ -77,9 +288,89 @@
         <div id="event-reports">
           <!-- 選択したイベントについて受信した情報一覧 -->
         </div>
-        <div id="report-detail">
+        <article class="report-card" id="report-detail" style="display: none;">
           <!-- 選択した情報の詳細 -->
-        </div>
+          <h2 class="report-title" id="report-headline"></h2>
+          <p class="report-subtitle" id="report-metadata"></p>
+
+          <div class="report-flags">
+            <span class="report-flag" style="display: none;" id="report-flag-isfinal">最終報</span>
+            <span class="report-flag" style="display: none;" id="report-flag-iscanceled">取消報</span>
+            <span class="report-flag" style="display: none;" id="report-flag-iswarn">警報</span>
+          </div>
+
+          <div class="report-grid">
+            <section class="report-section report-header-box">
+              <h3>ヘッダー情報</h3>
+              <dl class="report-kv">
+                <dt>見出し</dt><dd id="report-title"></dd>
+                <dt>配信状態</dt><dd id="report-status"></dd>
+                <dt>情報種別</dt><dd id="report-infotype"></dd>
+                <dt>編集官署名</dt><dd id="report-editor"></dd>
+                <dt>発表官署名</dt><dd id="report-publisher"></dd>
+              </dl>
+            </section>
+
+            <section class="report-section">
+              <h3>震源情報 <span id="report-temporal-indicator" style="display: none; color: #da0101;">仮定震源要素</span></h3>
+              <dl class="report-kv">
+                <dt>発生時刻</dt><dd id="report-origin-time"></dd>
+                <dt>検知時刻</dt><dd id="report-arrival-time"></dd>
+                <dt>震央</dt><dd id="report-hypocenter"></dd>
+                <dt>深さ</dt><dd id="report-depth"></dd>
+                <dt>マグニチュード</dt><dd id="report-magnitude"></dd>
+                <dt>場所区分</dt><dd id="report-location-type"></dd>
+              </dl>
+            </section>
+
+            <section class="report-section">
+              <h3>予測震度</h3>
+              <dl class="report-kv">
+                <dt>最大予測震度</dt><dd id="report-intensity-maxint"></dd>
+                <dt>長周期予測</dt><dd id="report-intensity-maxlg"></dd>
+                <dt>震度変化</dt><dd id="report-intensity-intchange"></dd>
+                <dt>LPGM変化</dt><dd id="report-intensity-lgchange"></dd>
+                <dt>予測値変化理由</dt><dd id="report-intensity-changereason"></dd>
+              </dl>
+            </section>
+
+            <section class="report-section">
+              <h3>付加文</h3>
+              <ul class="report-comment-list" id="report-comment-list"></ul>
+            </section>
+
+            <section class="report-section report-section-wide">
+              <h3>警報対象地域</h3>
+              <div class="report-compact-grid">
+                <section class="report-compact-group">
+                  <h4>地方予報区一覧</h4>
+                  <ul class="report-chip-list" id="report-zone-list"></ul>
+                </section>
+
+                <section class="report-compact-group">
+                  <h4>府県予報区一覧</h4>
+                  <ul class="report-chip-list" id="report-prefecture-list"></ul>
+                </section>
+              </div>
+
+              <div class="report-region-table-wrap">
+                <table class="report-region-table">
+                  <thead>
+                    <tr>
+                      <th>区域コード</th>
+                      <th>細分区域名</th>
+                      <th>最大予測震度</th>
+                      <th>最大予測長周期地震動階級</th>
+                      <th>主要動到達予測時刻</th>
+                      <th>PLUM法</th>
+                    </tr>
+                  </thead>
+                  <tbody id="report-region-tablebody"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        </article>
       </div>
     </main>
     <div style="display: none;" id="ws-port"><%= ws_port %></div>
@@ -87,6 +378,21 @@
       const wsPort = document.getElementById("ws-port").textContent;
       const wsClient = new WebSocket(`ws://${window.location.host}:${wsPort}/ws`);
       const eventList = [];
+
+      const intensityJapanese = {
+        "0": "0",
+        "1": "1",
+        "2": "2",
+        "3": "3",
+        "4": "4",
+        "5-": "5弱",
+        "5+": "5強",
+        "6-": "6弱",
+        "6+": "6強",
+        "7": "7",
+        "over": "over",
+        "不明": "不明"
+      };
 
       wsClient.addEventListener("open", () => {
         wsClient.send(JSON.stringify({ type: "list" }));
@@ -153,6 +459,8 @@
               parentElement.appendChild(contentElement);
               parentElement.appendChild(eventItemSelectedElement);
 
+              parentElement.addEventListener("click", onEventItemClicked);
+
               eventList.push({
                 data: event,
                 parentElement,
@@ -196,6 +504,169 @@
           }
         }
       }, 500);
+
+      // ------- イベント選択の処理 -------
+      async function onEventItemClicked (event){
+        const eventId = event.currentTarget.dataset.id;
+        for (const item of eventList){
+          if (item.data.eventId === eventId){
+            item.parentElement.classList.add("event-item-selected");
+          } else {
+            item.parentElement.classList.remove("event-item-selected");
+          }
+        }
+        document.getElementById("report-detail").style.display = "block";
+
+        const reportDetail = await fetch(`/api/event/${eventId}`).then(res => res.json());
+        if (reportDetail.status !== "success"){
+          document.getElementById("report-title").textContent = "情報の取得に失敗しました。";
+          document.getElementById("report-metadata").textContent = "";
+          return;
+        }
+        const report = reportDetail.data;
+        const processed = reportDetail.processed;
+
+        document.getElementById("report-headline").textContent = report.headline ?? report.body.earthquake.hypocenter.name;
+        document.getElementById("report-metadata").textContent = `Event ID: ${report.eventId} / Serial: ${report.serialNo} / ${new Date(report.pressDateTime).toISOString()} 発表`;
+
+        document.getElementById("report-flag-isfinal").style.display = report.body.isLastInfo ? "inline-block" : "none";
+        document.getElementById("report-flag-iscanceled").style.display = report.body.isCanceled ? "inline-block" : "none";
+        document.getElementById("report-flag-iswarn").style.display = report.body.isWarning ? "inline-block" : "none";
+
+        document.getElementById("report-title").textContent = report.title;
+        document.getElementById("report-status").textContent = report.status;
+        document.getElementById("report-infotype").textContent = report.infoType;
+        document.getElementById("report-editor").textContent = report.editorialOffice;
+        document.getElementById("report-publisher").textContent = report.publishingOffice.join(", ");
+
+        document.getElementById("report-temporal-indicator").style.display = report.body.earthquake.condition === "仮定震源要素" ? "inline" : "none";
+        document.getElementById("report-origin-time").textContent = report.body.earthquake.originTime ?? "（なし）";
+        document.getElementById("report-arrival-time").textContent = report.body.earthquake.arrivalTime;
+        document.getElementById("report-hypocenter").textContent = report.body.earthquake.hypocenter.name + " (" + report.body.earthquake.hypocenter.coordinate.latitude.text + " " + report.body.earthquake.hypocenter.coordinate.longitude.text + ")";
+        document.getElementById("report-depth").textContent = report.body.earthquake.condition !== "仮定震源要素" ? processed.depth : "（非表示）";
+        document.getElementById("report-magnitude").textContent = report.body.earthquake.condition !== "仮定震源要素" ? "M " + (report.body.earthquake.magnitude.value ?? "不明") : "（非表示）";
+        document.getElementById("report-location-type").textContent = report.body.earthquake.hypocenter.landOrSea ?? "（なし）";
+
+        const convertIntExpression = (from, to) => {
+          if (from === to){
+            return intensityJapanese[from] ?? "（不明）";
+          } else if (to === "over"){
+            return `${intensityJapanese[from] ?? "（不明）"} 程度以上`;
+          } else {
+            return `${intensityJapanese[from] ?? "（不明）"} 〜 ${intensityJapanese[to] ?? "（不明）"}`;
+          }
+        };
+
+        if (!report.body.intensity){
+          document.getElementById("report-intensity-maxint").textContent = "（なし）";
+          document.getElementById("report-intensity-maxlg").textContent = "（なし）";
+          document.getElementById("report-intensity-intchange").textContent = "（なし）";
+          document.getElementById("report-intensity-lgchange").textContent = "（なし）";
+          document.getElementById("report-intensity-changereason").textContent = "（なし）";
+        } else {
+          document.getElementById("report-intensity-maxint").textContent = convertIntExpression(report.body.intensity.forecastMaxInt.from, report.body.intensity.forecastMaxInt.to);
+
+          if (!report.body.intensity.forecastMaxLgInt){
+            document.getElementById("report-intensity-maxlg").textContent = "（なし）";
+          } else {
+            document.getElementById("report-intensity-maxlg").textContent = convertIntExpression(report.body.intensity.forecastMaxLgInt.from, report.body.intensity.forecastMaxLgInt.to);
+          }
+
+          if (!report.body.intensity.appendix){
+            document.getElementById("report-intensity-intchange").textContent = "（なし）";
+            document.getElementById("report-intensity-lgchange").textContent = "（なし）";
+            document.getElementById("report-intensity-changereason").textContent = "（なし）";
+          } else {
+            document.getElementById("report-intensity-intchange").textContent = {
+              "0": "ほとんど変化なし",
+              "1": "最大予測震度が 1.0 以上大きくなった",
+              "2": "最大予測震度が 1.0 以上小さくなった"
+            }[report.body.intensity.appendix.maxIntChange] ?? "（不明）";
+            document.getElementById("report-intensity-lgchange").textContent = {
+              "0": "変化なし",
+              "1": "最大予測長周期地震動階級が 1 以上大きくなった",
+              "2": "最大予測長周期地震動階級が 1 以上小さくなった"
+            }[report.body.intensity.appendix.maxLgIntChange] ?? "（不明）";
+            document.getElementById("report-intensity-changereason").textContent = {
+              "0": "変化なし",
+              "1": "主としてＭが変化したため",
+              "2": "主として震央位置が変化したため",
+              "3": "M及び震央位置が変化したため",
+              "4": "震源の深さが変化したため",
+              "9": "PLUM法による予測により変化したため"
+            }[report.body.intensity.appendix.maxIntChangeReason] ?? "（不明）";
+          }
+        }
+
+        const commentListElement = document.getElementById("report-comment-list");
+        commentListElement.innerHTML = "";
+        const addCommentItem = (code, text) => {
+          const itemElement = document.createElement("li");
+          itemElement.classList.add("report-comment-item");
+
+          const codeElement = document.createElement("span");
+          codeElement.classList.add("report-comment-code");
+          codeElement.textContent = code;
+
+          const textElement = document.createElement("span");
+          textElement.classList.add("report-comment-text");
+          textElement.textContent = text;
+
+          itemElement.appendChild(codeElement);
+          itemElement.appendChild(textElement);
+          commentListElement.appendChild(itemElement);
+        };
+
+        if (report.comments){
+          if (report.comments.free) addCommentItem("", report.comments.free);
+          if (report.comments.warning){
+            const codeLength = report.comments.warning.codes.length;
+            const textSplitted = report.comments.warning.text.split("\n");
+
+            report.comments.warning.codes.forEach((code, index) => {
+              const text = textSplitted[index] ?? "（テキストなし）";
+              addCommentItem(code, text);
+            });
+          }
+        }
+        if (report.text){
+          addCommentItem("", report.text);
+        }
+
+        document.getElementById("report-zone-list").innerHTML = "";
+        if (report.zones){
+          for (const zone of report.zones){
+            const itemElement = document.createElement("li");
+            itemElement.textContent = zone.name;
+            document.getElementById("report-zone-list").appendChild(itemElement);
+          }
+        }
+
+        document.getElementById("report-prefecture-list").innerHTML = "";
+        if (report.prefectures){
+          for (const prefecture of report.prefectures){
+            const itemElement = document.createElement("li");
+            itemElement.textContent = prefecture.name;
+            document.getElementById("report-prefecture-list").appendChild(itemElement);
+          }
+        }
+
+        const regionTableBody = document.getElementById("report-region-tablebody");
+        regionTableBody.innerHTML = "";
+        if (report.intensity?.regions){
+          regionTableBody.insertAdjacentHTML("beforeend", report.intensity.regions.map(region => `
+            <tr>
+              <td>${region.code}</td>
+              <td>${region.name}</td>
+              <td>${convertIntExpression(region.forecastMaxInt.from, region.forecastMaxInt.to)}</td>
+              <td>${region.forecastMaxLgInt ? convertIntExpression(region.forecastMaxLgInt.from, region.forecastMaxLgInt.to) : "（なし）"}</td>
+              <td>${region.condition ?? region.arrivalTime}</td>
+              <td>${region.isPlum ? "○" : ""}</td>
+            </tr>
+          `).join(""));
+        }
+      }
+
     </script>
   </body>
 </html>
