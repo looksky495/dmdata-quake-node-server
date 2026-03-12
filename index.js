@@ -155,6 +155,10 @@ app.get("/debug/upload", localhostOnlyHtml, (req, res) => {
   res.sendFile(path.resolve(import.meta.dirname, "views/upload.html"));
 });
 
+app.get("/debug/sample/list", localhostOnlyHtml, (req, res) => {
+  res.sendFile(path.resolve(import.meta.dirname, "views/sample-list.html"));
+});
+
 app.post("/debug/api/upload", localhostOnlyJson, express.json(), async (req, res) => {
   try {
     const response = await handleMessage(db, req.body);

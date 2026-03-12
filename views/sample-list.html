@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="format-detection" content="telephone=no">
+  <title>DMData Quake Node Server - 受信した緊急地震速報一覧</title>
+  <link rel="stylesheet" href="/static/eew-item.css">
+  <style>
+    @keyframes recent-animation {
+      0% {
+        background-color: #ffeda6;
+      }
+      100% {
+        background-color: transparent;
+      }
+    }
+
+    :root {
+      --event-list-width: 330px;
+      --event-item-content-width: calc(var(--event-list-width) - 84px - 30px);
+    }
+
+    body {
+      font-family: "Yu Gothic Medium", "Yu Gothic", "Hiragino Kaku Gothic ProN", "Noto Sans CJK JP", "Source Han Sans JP", "sans-serif";
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      background-color: #dde2fb;
+      color: #6b6b6b;
+      margin: 0;
+      padding: 0.5rem;
+      text-align: center;
+      font-size: 1rem;
+    }
+    main {
+      display: flex;
+      padding: 0;
+    }
+    #event-list {
+      width: calc(var(--event-list-width) - 2px);
+      border-right: 2px solid #9b9b9b;
+    }
+    .event-list-scroll {
+      height: 100dvh;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-gutter: stable;
+    }
+    #event-selected {
+      flex: 1;
+      min-width: 0;
+      width: auto;
+      padding-left: 0;
+    }
+
+    #report-detail {
+      height: 100dvh;
+      overflow-y: auto;
+      padding: 0;
+      box-sizing: border-box;
+      background: linear-gradient(180deg, #f8fbff 0%, #ffffff 240px);
+    }
+    .report-card {
+      width: 100%;
+      min-height: 100%;
+      border: 0;
+      border-radius: 0;
+      background: #fff;
+      box-shadow: none;
+      padding: 1rem 1rem 1.25rem;
+      box-sizing: border-box;
+    }
+    .report-title {
+      margin: 0;
+      color: #273042;
+      font-size: 1.2rem;
+    }
+    .report-subtitle {
+      margin: 0.3rem 0 0.8rem;
+      color: #556070;
+      font-size: 0.9rem;
+    }
+    .report-flags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .report-flag {
+      font-size: 0.78rem;
+      border-radius: 999px;
+      padding: 0.2rem 0.65rem;
+      border: 1px solid #bac6d6;
+      background: #eef3fa;
+      color: #314056;
+    }
+    .report-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.8rem;
+    }
+    .report-section {
+      border: 1px solid #e0e6ef;
+      border-radius: 8px;
+      padding: 0.7rem 0.75rem;
+      background: #fafcfe;
+    }
+    .report-section h3 {
+      margin: 0 0 0.5rem;
+      font-size: 0.92rem;
+      color: #29354a;
+    }
+    .report-section-wide {
+      grid-column: 1 / -1;
+    }
+    .report-header-box {
+      margin-bottom: 0;
+      border: 1px solid #d9e3f0;
+      border-radius: 8px;
+      background: #f7faff;
+      padding: 0.7rem 0.75rem;
+    }
+    .report-kv {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      row-gap: 0.35rem;
+      column-gap: 0.6rem;
+      margin: 0;
+      font-size: 0.86rem;
+    }
+    .report-kv dt {
+      color: #5d6b7b;
+      margin: 0;
+    }
+    .report-kv dd {
+      margin: 0;
+      color: #1f2a38;
+      font-weight: 600;
+    }
+    .report-list {
+      margin: 0;
+      padding-left: 1.1rem;
+      font-size: 0.86rem;
+      color: #243245;
+    }
+    .report-list li + li {
+      margin-top: 0.25rem;
+    }
+    .report-compact-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.55rem;
+      margin-bottom: 0.7rem;
+    }
+    .report-compact-group {
+      border: 1px solid #d9e2ef;
+      border-radius: 6px;
+      padding: 0.45rem 0.55rem;
+      background: #fff;
+    }
+    .report-compact-group h4 {
+      margin: 0 0 0.35rem;
+      font-size: 0.8rem;
+      color: #3a4b62;
+    }
+    .report-chip-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+    }
+    .report-chip-list li {
+      font-size: 0.78rem;
+      border: 1px solid #d0dbee;
+      border-radius: 999px;
+      padding: 0.15rem 0.45rem;
+      background: #f6f9ff;
+      color: #2f435f;
+      white-space: nowrap;
+    }
+    .report-region-table-wrap {
+      border: 1px solid #d9e2ef;
+      border-radius: 6px;
+      overflow: auto;
+      max-height: 15rem;
+      background: #fff;
+    }
+    .report-region-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    .report-region-table th,
+    .report-region-table td {
+      text-align: left;
+      padding: 0.45rem 0.5rem;
+      border-bottom: 1px solid #ebeff5;
+      white-space: nowrap;
+    }
+    .report-region-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #eef4fd;
+      color: #324866;
+      font-weight: 700;
+    }
+    .report-region-table tbody tr:nth-child(even) {
+      background: #fbfdff;
+    }
+    .report-warning-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 0.45rem;
+    }
+    .report-warning-item {
+      display: flex;
+      align-items: baseline;
+      gap: 0.55rem;
+      padding: 0.45rem 0.55rem;
+      border: 1px solid #d9e2ef;
+      border-radius: 6px;
+      background: #fff;
+      font-size: 0.84rem;
+      color: #243245;
+    }
+    .report-warning-code {
+      flex: 0 0 auto;
+      font-weight: 700;
+      color: #314b72;
+      min-width: 3.6em;
+    }
+    .report-warning-text {
+      flex: 1;
+    }
+    .report-note {
+      margin-top: 0.8rem;
+      padding: 0.6rem 0.7rem;
+      border-left: 4px solid #8cb3e6;
+      background: #eef5ff;
+      color: #2c3d55;
+      font-size: 0.84rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
+    @media (max-width: 1080px) {
+      #event-selected {
+        width: auto;
+      }
+      .report-grid {
+        grid-template-columns: 1fr;
+      }
+      .report-kv {
+        grid-template-columns: 104px 1fr;
+      }
+      .report-compact-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* 選択中の「>」矢印 */
+    .event-item.event-item-selected > .event-item-selected {
+      width: 24px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18l6-6-6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+
+    /* 構文ハイライトが暴走しないようにする */
+    a.a#a > a[a] + a[a~=a] {}
+  </style>
+</head>
+<body>
+  <main>
+    <div id="event-list">
+      <h1>受信した緊急地震速報一覧</h1>
+      <!-- 受信した緊急地震速報（Event ID 別） -->
+      <div class="event-list-scroll" id="event-list-scroll"><div class="event-item shindo-5l event-recent event-item-selected" data-id="20240601123456"><div class="event-item-shindo"></div><div class="event-item-content"><div class="event-item-header">Rev. 123 - 31 秒前 発生</div><div class="event-item-body"><div class="event-item-epicenter">山梨県東部・富士五湖</div><div class="event-item-metadata"><div class="event-item-magnitude">M 6.0</div><div class="event-item-depth">10km</div></div></div></div><div class="event-item-selected"></div></div><div class="event-item shindo-6h event-warn" data-id="20240531214354"><div class="event-item-shindo"></div><div class="event-item-content"><div class="event-item-header">Rev. 62 - 2024/05/31 21:43:54 発生</div><div class="event-item-body"><div class="event-item-epicenter">石川県能登地方</div><div class="event-item-metadata"><div class="event-item-magnitude">M 7.8</div><div class="event-item-depth">ごく浅い</div></div></div></div><div class="event-item-selected"></div></div><div class="event-item shindo-hidden event-cancelled" data-id="20240530235500"><div class="event-item-shindo"></div><div class="event-item-content"><div class="event-item-header">Rev. 2 - 2024/05/30 23:55:05 発生</div><div class="event-item-body"><div class="event-item-epicenter">富山湾</div><div class="event-item-metadata"><div class="event-item-magnitude">（キャンセル済み）</div><div class="event-item-depth"></div></div></div></div><div class="event-item-selected"></div></div><div class="event-item shindo-2" data-id="20240530162534"><div class="event-item-shindo"></div><div class="event-item-content"><div class="event-item-header">Rev. 4 - 2024/05/30 16:25:34 発生</div><div class="event-item-body"><div class="event-item-epicenter">富山湾</div><div class="event-item-metadata"><div class="event-item-magnitude">M 3.4</div><div class="event-item-depth">140km</div></div></div></div><div class="event-item-selected"></div></div><div class="event-item shindo-hidden" data-id="20240530071727"><div class="event-item-shindo"></div><div class="event-item-content"><div class="event-item-header">Rev. 1 - 2024/05/30 07:17:27 検知</div><div class="event-item-body"><div class="event-item-epicenter">九州地方</div><div class="event-item-metadata"><div class="event-item-magnitude">5弱程度以上の揺れに注意</div><div class="event-item-depth"></div></div></div></div><div class="event-item-selected"></div></div><div class="event-item shindo-unknown" data-id="20240530012341"><div class="event-item-shindo"></div><div class="event-item-content"><div class="event-item-header">Rev. 2 - 2024/05/30 01:23:45 発生</div><div class="event-item-body"><div class="event-item-epicenter">小笠原諸島近海</div><div class="event-item-metadata"><div class="event-item-magnitude">M 9.0</div><div class="event-item-depth">590km</div></div></div></div><div class="event-item-selected"></div></div></div>
+    </div>
+    <div id="event-selected">
+      <!-- 選択したイベント -->
+      <!-- <div id="event-reports">
+        選択したイベントについて受信した情報一覧
+      </div> -->
+      <div id="report-detail">
+        <!-- 選択した情報の詳細 -->
+        <article class="report-card">
+          <h2 class="report-title">サンプル表示: 石川県で地震　北陸　甲信　東海　関東で強い揺れ</h2>
+          <p class="report-subtitle">Event ID: 20240601123456 / Serial: 123 / 2026-03-13T09:14:22+09:00 発表</p>
+
+          <div class="report-flags">
+            <span class="report-flag" id="report-flag-isfinal">最終報</span>
+            <span class="report-flag" id="report-flag-iscanceled">取消報</span>
+            <span class="report-flag" id="report-flag-iswarn">警報</span>
+          </div>
+
+          <div class="report-grid">
+            <section class="report-section report-header-box">
+              <h3>ヘッダー情報</h3>
+              <dl class="report-kv">
+                <dt>見出し</dt><dd>緊急地震速報（地震動予報）</dd>
+                <dt>配信状態</dt><dd>通常</dd>
+                <dt>情報種別</dt><dd>発表</dd>
+                <dt>編集官署名</dt><dd>大阪管区気象台</dd>
+                <dt>発表官署名</dt><dd>気象庁</dd>
+              </dl>
+            </section>
+
+            <section class="report-section">
+              <h3>震源情報</h3>
+              <dl class="report-kv">
+                <dt>発生時刻</dt><dd>2026-03-13T09:13:48+09:00</dd>
+                <dt>検知時刻</dt><dd>2026-03-13T09:13:52+09:00</dd>
+                <dt>震央地名</dt><dd>山梨県東部・富士五湖</dd>
+                <dt>深さ</dt><dd>10 km</dd>
+                <dt>マグニチュード</dt><dd>M 6.0</dd>
+                <dt>場所区分</dt><dd>内陸</dd>
+              </dl>
+            </section>
+
+            <section class="report-section">
+              <h3>予測震度</h3>
+              <dl class="report-kv">
+                <dt>最大予測震度</dt><dd>5弱 〜 6弱</dd>
+                <dt>長周期予測</dt><dd>2 〜 3</dd>
+                <dt>変化情報</dt><dd>最大予測震度が増加</dd>
+                <dt>変化理由</dt><dd>主として震央位置の変化</dd>
+              </dl>
+            </section>
+
+            <section class="report-section">
+              <h3>付加文（警報コメント）</h3>
+              <ul class="report-warning-list">
+                <li class="report-warning-item">
+                  <span class="report-warning-code">0201</span>
+                  <span class="report-warning-text">強い揺れに警戒してください。</span>
+                </li>
+                <!-- 将来は同形式の li を複数追加可能 -->
+              </ul>
+            </section>
+
+            <section class="report-section report-section-wide">
+              <h3>警報対象地域</h3>
+              <div class="report-compact-grid">
+                <section class="report-compact-group">
+                  <h4>地方予報区一覧</h4>
+                  <ul class="report-chip-list">
+                    <li>関東甲信地方</li>
+                    <li>東海地方</li>
+                    <li>近畿地方</li>
+                    <li>ほか 2 地方</li>
+                  </ul>
+                </section>
+
+                <section class="report-compact-group">
+                  <h4>府県予報区一覧</h4>
+                  <ul class="report-chip-list">
+                    <li>山梨県</li>
+                    <li>静岡県</li>
+                    <li>長野県</li>
+                    <li>神奈川県</li>
+                    <li>ほか 8 府県</li>
+                  </ul>
+                </section>
+              </div>
+
+              <div class="report-region-table-wrap">
+                <table class="report-region-table">
+                  <thead>
+                    <tr>
+                      <th>区域コード</th>
+                      <th>細分区域名</th>
+                      <th>最大予測震度</th>
+                      <th>主要動到達予測時刻</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>191</td>
+                      <td>山梨県東部・富士五湖</td>
+                      <td>5弱 〜 6弱</td>
+                      <td>2026-03-13T09:14:05+09:00</td>
+                    </tr>
+                    <tr>
+                      <td>222</td>
+                      <td>静岡県東部</td>
+                      <td>5弱 〜 5強</td>
+                      <td>2026-03-13T09:14:12+09:00</td>
+                    </tr>
+                    <tr>
+                      <td>203</td>
+                      <td>長野県中部</td>
+                      <td>4 〜 5弱</td>
+                      <td>2026-03-13T09:14:18+09:00</td>
+                    </tr>
+                    <tr>
+                      <td>142</td>
+                      <td>神奈川県西部</td>
+                      <td>4 〜 5弱</td>
+                      <td>2026-03-13T09:14:20+09:00</td>
+                    </tr>
+                    <tr>
+                      <td>...</td>
+                      <td>（省略: 合計 40 区域）</td>
+                      <td>...</td>
+                      <td>...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+
+          <p class="report-note">この表示は eew-information v1.0.0 の主要項目（最終報・取消報・警報判定、震源情報、予測震度、警報対象地域、付加文）に対応したサンプルです。</p>
+        </article>
+      </div>
+    </div>
+  </main>
+</body></html>
