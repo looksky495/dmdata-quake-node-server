@@ -44,7 +44,6 @@ export function initializeWebSocketServer (db, port = 6500){
           }
         } else if (message.type === "list"){
           // クライアントからのリスト要求を処理
-          // 一旦ダミーのデータを返す
           console.log("[" + new Date().toISOString() + "] Received list request from client.");
 
           const events = await getEventList(parentData.db, 20);
@@ -54,9 +53,22 @@ export function initializeWebSocketServer (db, port = 6500){
           };
           for (const event of events){
             const latestData = await getLatestVXSE45(parentData.db, event.eventId);
+            const { header: headerText, ...others } = getVXSE45Item(latestData);
+            const isRealtime = others.classes.includes("event-recent")
+
             if (latestData) responseData.data.push({
               eventId: event.eventId,
-              ...getVXSE45Item(latestData)
+              header: {
+                realtime: isRealtime,
+                ...(isRealtime ? {
+                  rev: latestData.serialNo,
+                  target: new Date(latestData.body.earthquake.originTime ?? latestData.body.earthquake.arrivalTime) - 0,
+                  suffix: latestData.body.earthquake.originTime ? "発生" : "検知"
+                } : {
+                  text: headerText
+                })
+              },
+              ...others
             });
           }
 
