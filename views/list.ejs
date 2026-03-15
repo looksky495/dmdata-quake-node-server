@@ -402,7 +402,7 @@
         if (data.type === "list"){
           // console.log("Received event list:", data.list);
           for (const event of data.data.toReversed()){
-            const existingEvent = eventList.find(e => e.eventId === event.eventId);
+            const existingEvent = eventList.find(e => e.data.eventId === event.eventId);
 
             if (!existingEvent){
               // 要素を追加
