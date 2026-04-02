@@ -53,7 +53,7 @@ export async function saveVXSE45(db, data){
     /** @type {EewInformation | null} */
     const existingLatest = await db.collection("vxse45-latest").findOne({ eventId: data.eventId });
     // 既存のデータが存在しない、または serial が新しい、またはキャンセル報である場合に更新
-    if (!existingLatest || existingLatest.serialNo <= data.serialNo || data.body.isCanceled){
+    if (!existingLatest || (existingLatest.serialNo - 0 <= data.serialNo - 0) || data.body.isCanceled){
       await db.collection("vxse45-latest").updateOne({ eventId: data.eventId }, { $set: { ...data } }, { upsert: true });
     }
 
