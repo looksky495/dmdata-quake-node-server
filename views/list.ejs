@@ -51,7 +51,7 @@
       #event-selected {
         padding: 1rem;
         width: calc(100dvw - var(--event-list-width) - 2rem);
-        height: calc(100% - 17rem);
+        height: calc(100dvh - 2rem);
       }
 
       /* 選択中の「>」矢印 */
@@ -192,8 +192,6 @@
       .report-region-table-wrap {
         border: 1px solid #d9e2ef;
         border-radius: 6px;
-        overflow: auto;
-        max-height: 15rem;
         background: #fff;
       }
       .report-region-table {
@@ -219,14 +217,14 @@
       .report-region-table tbody tr:nth-child(even) {
         background: #fbfdff;
       }
-      .report-warning-list {
+      .report-comment-list {
         list-style: none;
         margin: 0;
         padding: 0;
         display: grid;
         gap: 0.45rem;
       }
-      .report-warning-item {
+      .report-comment-item {
         display: flex;
         align-items: baseline;
         gap: 0.55rem;
@@ -237,13 +235,13 @@
         font-size: 0.84rem;
         color: #243245;
       }
-      .report-warning-code {
+      .report-comment-code {
         flex: 0 0 auto;
         font-weight: 700;
         color: #314b72;
         min-width: 3.6em;
       }
-      .report-warning-text {
+      .report-comment-text {
         flex: 1;
       }
       .report-note {
@@ -360,8 +358,8 @@
                       <th>区域コード</th>
                       <th>細分区域名</th>
                       <th>最大予測震度</th>
-                      <th>最大予測長周期地震動階級</th>
-                      <th>主要動到達予測時刻</th>
+                      <th>最大予測LPGM</th>
+                      <th>主要動到達予測</th>
                       <th>PLUM法</th>
                     </tr>
                   </thead>
@@ -540,8 +538,8 @@
         document.getElementById("report-publisher").textContent = report.publishingOffice.join(", ");
 
         document.getElementById("report-temporal-indicator").style.display = report.body.earthquake.condition === "仮定震源要素" ? "inline" : "none";
-        document.getElementById("report-origin-time").textContent = report.body.earthquake.originTime ?? "（なし）";
-        document.getElementById("report-arrival-time").textContent = report.body.earthquake.arrivalTime;
+        document.getElementById("report-origin-time").textContent = report.body.earthquake.originTime ? Intl.DateTimeFormat("ja-JP", { timeStyle: "medium", dateStyle: "short" }).format(new Date(report.body.earthquake.originTime)) : "（なし）";
+        document.getElementById("report-arrival-time").textContent = Intl.DateTimeFormat("ja-JP", { timeStyle: "medium", dateStyle: "short" }).format(new Date(report.body.earthquake.arrivalTime));
         document.getElementById("report-hypocenter").textContent = report.body.earthquake.hypocenter.name + " (" + report.body.earthquake.hypocenter.coordinate.latitude.text + " " + report.body.earthquake.hypocenter.coordinate.longitude.text + ")";
         document.getElementById("report-depth").textContent = report.body.earthquake.condition !== "仮定震源要素" ? processed.depth : "（非表示）";
         document.getElementById("report-magnitude").textContent = report.body.earthquake.condition !== "仮定震源要素" ? "M " + (report.body.earthquake.magnitude.value ?? "不明") : "（非表示）";
