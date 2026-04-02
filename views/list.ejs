@@ -617,25 +617,25 @@
           commentListElement.appendChild(itemElement);
         };
 
-        if (report.comments){
-          if (report.comments.free) addCommentItem("", report.comments.free);
-          if (report.comments.warning){
-            const codeLength = report.comments.warning.codes.length;
-            const textSplitted = report.comments.warning.text.split("\n");
+        if (report.body.comments){
+          if (report.body.comments.free) addCommentItem("", report.body.comments.free);
+          if (report.body.comments.warning){
+            const codeLength = report.body.comments.warning.codes.length;
+            const textSplitted = report.body.comments.warning.text.split("\n");
 
-            report.comments.warning.codes.forEach((code, index) => {
+            report.body.comments.warning.codes.forEach((code, index) => {
               const text = textSplitted[index] ?? "（テキストなし）";
               addCommentItem(code, text);
             });
           }
         }
-        if (report.text){
-          addCommentItem("", report.text);
+        if (report.body.text){
+          addCommentItem("", report.body.text);
         }
 
         document.getElementById("report-zone-list").innerHTML = "";
-        if (report.zones){
-          for (const zone of report.zones){
+        if (report.body.zones){
+          for (const zone of report.body.zones){
             const itemElement = document.createElement("li");
             itemElement.textContent = zone.name;
             document.getElementById("report-zone-list").appendChild(itemElement);
@@ -643,8 +643,8 @@
         }
 
         document.getElementById("report-prefecture-list").innerHTML = "";
-        if (report.prefectures){
-          for (const prefecture of report.prefectures){
+        if (report.body.prefectures){
+          for (const prefecture of report.body.prefectures){
             const itemElement = document.createElement("li");
             itemElement.textContent = prefecture.name;
             document.getElementById("report-prefecture-list").appendChild(itemElement);
@@ -653,14 +653,14 @@
 
         const regionTableBody = document.getElementById("report-region-tablebody");
         regionTableBody.innerHTML = "";
-        if (report.intensity?.regions){
-          regionTableBody.insertAdjacentHTML("beforeend", report.intensity.regions.map(region => `
+        if (report.body.intensity?.regions){
+          regionTableBody.insertAdjacentHTML("beforeend", report.body.intensity.regions.map(region => `
             <tr>
               <td>${region.code}</td>
               <td>${region.name}</td>
               <td>${convertIntExpression(region.forecastMaxInt.from, region.forecastMaxInt.to)}</td>
               <td>${region.forecastMaxLgInt ? convertIntExpression(region.forecastMaxLgInt.from, region.forecastMaxLgInt.to) : "（なし）"}</td>
-              <td>${region.condition ?? region.arrivalTime}</td>
+              <td>${region.condition ?? Intl.DateTimeFormat('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date(region.arrivalTime))}</td>
               <td>${region.isPlum ? "○" : ""}</td>
             </tr>
           `).join(""));
